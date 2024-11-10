@@ -1,4 +1,4 @@
-# Kubernetes Node Cloud Init
+# Kubernetes Node Cloud Config
 
 This repository contains my personal [Cloud-init](https://cloudinit.readthedocs.io/en/latest/index.html) configuration to set up a Kubernetes cluster using [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/).
 
