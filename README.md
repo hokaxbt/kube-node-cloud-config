@@ -339,7 +339,7 @@ hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0
 hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 443 --description "Allow HTTPS" kubernetes-node-firewall
 
 hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=control-plane kubernetes-node-firewall
-hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=node kubernetes-node-firewall
+hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=worker kubernetes-node-firewall
 ```
 
 Your setup is complete, and the Kubernetes cluster is now fully operational with a highly available control plane and additional worker nodes. You can begin managing your workloads and utilizing Kubernetes features in this environment.
