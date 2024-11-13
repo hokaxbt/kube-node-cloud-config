@@ -23,6 +23,11 @@ write_files:
       net.bridge.bridge-nf-call-iptables  = 1
       net.bridge.bridge-nf-call-ip6tables = 1
 
+  # info: https://github.com/hetznercloud/hcloud-cloud-controller-manager
+  - path: /etc/default/kubelet
+    content: |
+      KUBELET_EXTRA_ARGS="--cloud-provider=external"
+
 runcmd:
   # Load modules without reboot
   - modprobe overlay
