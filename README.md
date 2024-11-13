@@ -42,9 +42,9 @@ Descriptions:
 For control-plane nodes, we’ll use the most affordable ARM machines available on Hetzner. Use the following commands to create three servers:
 
 ```shell
-hcloud server create --datacenter fsn1-dc14 --type cax11 --name hoka-control-plane-1 --image debian-12 --ssh-key ssh-name --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config
-hcloud server create --datacenter hel1-dc2 --type cax11 --name hoka-control-plane-2 --image debian-12 --ssh-key ssh-name --network hoka-cluster-network  --placement-group hoka-cluster-group --user-data-from-file ./cloud-config
-hcloud server create --datacenter nbg1-dc3 --type cax11 --name hoka-control-plane-3 --image debian-12 --ssh-key ssh-name --network hoka-cluster-network  --placement-group hoka-cluster-group --user-data-from-file ./cloud-config
+hcloud server create --datacenter fsn1-dc14 --type cax11 --name hoka-control-plane-fsn1 --image debian-12 --ssh-key ssh-name --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config --label kubernetes_node_type=control-plane
+hcloud server create --datacenter hel1-dc2 --type cax11 --name hoka-control-plane-hel1 --image debian-12 --ssh-key ssh-name --network hoka-cluster-network  --placement-group hoka-cluster-group --user-data-from-file ./cloud-config --label kubernetes_node_type=control-plane
+hcloud server create --datacenter nbg1-dc3 --type cax11 --name hoka-control-plane-nbg1 --image debian-12 --ssh-key ssh-name --network hoka-cluster-network  --placement-group hoka-cluster-group --user-data-from-file ./cloud-config --label kubernetes_node_type=control-plane
 ```
 
 Descriptions:
@@ -296,9 +296,9 @@ hoka-control-plane-3   Ready    control-plane   26m   v1.31.2   10.0.1.3      <r
 Create additional servers for worker nodes:
 
 ```shell
-hcloud server create --datacenter fsn1-dc14 --type cax11 --name hoka-worker-fsn1-cax11-1 --image debian-12 --ssh-key name1,name2 --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config
-hcloud server create --datacenter hel1-dc2 --type cax11 --name hoka-worker-hel1-cax11-1 --image debian-12 --ssh-key name1,name2 --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config
-hcloud server create --datacenter nbg1-dc3 --type cax11 --name hoka-worker-nbg1-cax11-1 --image debian-12 --ssh-key name1,name2 --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config
+hcloud server create --datacenter fsn1-dc14 --type cax11 --name hoka-worker-fsn1-cax11-1 --image debian-12 --ssh-key name1,name2 --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config --label kubernetes_node_type=worker
+hcloud server create --datacenter hel1-dc2 --type cax11 --name hoka-worker-hel1-cax11-1 --image debian-12 --ssh-key name1,name2 --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config --label kubernetes_node_type=worker
+hcloud server create --datacenter nbg1-dc3 --type cax11 --name hoka-worker-nbg1-cax11-1 --image debian-12 --ssh-key name1,name2 --network hoka-cluster-network --placement-group hoka-cluster-group --user-data-from-file ./cloud-config --label kubernetes_node_type=worker
 ```
 
 SSH into each worker node and join it to the cluster:
@@ -325,6 +325,21 @@ hoka-control-plane-3       Ready    control-plane   34m    v1.31.2   10.0.1.3   
 hoka-worker-fsn1-cax11-1   Ready    <none>          109s   v1.31.2   10.0.1.5      <redacted>       Debian GNU/Linux 12 (bookworm)   6.1.0-27-arm64   cri-o://1.31.2
 hoka-worker-hel1-cax11-1   Ready    <none>          63s    v1.31.2   10.0.1.6      <redacted>       Debian GNU/Linux 12 (bookworm)   6.1.0-26-arm64   cri-o://1.31.2
 hoka-worker-nbg1-cax11-1   Ready    <none>          10s    v1.31.2   10.0.1.7      <redacted>       Debian GNU/Linux 12 (bookworm)   6.1.0-25-arm64   cri-o://1.31.2
+```
+
+### Step 11: Secure your cluster
+
+We will disable all access via public IP except for SSH, http and https only:
+
+```shell
+hcloud firewall create --name kubernetes-node-firewall
+
+hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 22 --description "Allow SSH" kubernetes-node-firewall
+hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 80 --description "Allow HTTP" kubernetes-node-firewall
+hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 443 --description "Allow HTTPS" kubernetes-node-firewall
+
+hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=control-plane kubernetes-node-firewall
+hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=node kubernetes-node-firewall
 ```
 
 Your setup is complete, and the Kubernetes cluster is now fully operational with a highly available control plane and additional worker nodes. You can begin managing your workloads and utilizing Kubernetes features in this environment.
