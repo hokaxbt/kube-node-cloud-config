@@ -337,6 +337,8 @@ hcloud firewall create --name kubernetes-node-firewall
 hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 22 --description "Allow SSH" kubernetes-node-firewall
 hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 80 --description "Allow HTTP" kubernetes-node-firewall
 hcloud firewall add-rule --direction in --source-ips 0.0.0.0/0 --source-ips ::/0 --protocol tcp --port 443 --description "Allow HTTPS" kubernetes-node-firewall
+hcloud firewall add-rule --direction in --source-ips 10.0.1.0/24 --protocol tcp --port any --description "Allow TCP Private Network" kubernetes-node-firewall
+hcloud firewall add-rule --direction in --source-ips 10.0.1.0/24 --protocol udp --port any --description "Allow UDP Private Network" kubernetes-node-firewall
 
 hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=control-plane kubernetes-node-firewall
 hcloud firewall apply-to-resource --type label_selector --label-selector kubernetes_node_type=worker kubernetes-node-firewall
